@@ -74,14 +74,15 @@ export class SimpleRenderData implements AfterViewInit {
             ];
 
         let update = d3.select('div.chart')
+            .selectAll('div')
             .data(scores);
 
-        console.log(update);
-        
         update.enter()
             .append('div')
             .text((d) => {
                 return d.name;
             })
+            .style('color', 'red');
+
     }
 }
