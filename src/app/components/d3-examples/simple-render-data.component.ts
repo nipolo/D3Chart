@@ -17,7 +17,9 @@ export class SimpleRenderData implements AfterViewInit {
     }
 
     ngAfterViewInit(): void {
-        this.testSelectDomEl();
+        //this.testSelectDomEl();
+
+        this.testVisualizeData();
     }
 
     testLinearScale(): void {
@@ -39,25 +41,47 @@ export class SimpleRenderData implements AfterViewInit {
         console.log(this.timeScale.domain());
     }
 
-    testExtend(): void {
-        d3.json('app/components/d3-examples/data/data.json', (data) => {
-            this.extent = d3.extent(data, (d: any) => {
-                return d.age;
-            });
+    // testExtend(): void {
+    //     d3.json('app/components/d3-examples/data/data.json', (data) => {
+    //         this.extent = d3.extent(data, (d: any) => {
+    //             return d.age;
+    //         });
 
-            console.log(this.extent)
+    //         console.log(this.extent)
 
-            let scale = d3.scaleLinear()
-                .domain(this.extent)
-                .range([0, 600]);
-            console.log(scale(37));
-        });
+    //         let scale = d3.scaleLinear()
+    //             .domain(this.extent)
+    //             .range([0, 600]);
+    //         console.log(scale(37));
+    //     });
 
-    }
+    // }
 
     testSelectDomEl(): void {
-        let svg = d3.select("svg");
+        let svg = d3.select("div.chart");
         svg.append('span')
             .html('test');
+    }
+
+    testVisualizeData(): void {
+        let scores: Array<{ name: string, score: number }> =
+            [
+                { name: 'Alice', score: 96 },
+                { name: 'Billy', score: 56 },
+                { name: 'Cindy', score: 76 },
+                { name: 'David', score: 100 },
+                { name: 'Emily', score: 83 },
+            ];
+
+        let update = d3.select('div.chart')
+            .data(scores);
+
+        console.log(update);
+        
+        update.enter()
+            .append('div')
+            .text((d) => {
+                return d.name;
+            })
     }
 }
