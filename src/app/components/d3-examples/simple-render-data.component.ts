@@ -60,7 +60,7 @@ export class SimpleRenderData implements AfterViewInit {
     testSelectDomEl(): void {
         let svg = d3.select("div.chart");
         svg.append('span')
-            .html('test');
+            .html('testt');
     }
 
     testVisualizeData(): void {
