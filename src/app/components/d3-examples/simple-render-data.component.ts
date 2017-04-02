@@ -69,31 +69,51 @@ export class SimpleRenderData implements AfterViewInit {
     testVisualizeData(): void {
         let scores: Array<any> =
             [
+                { name: 'Alice', score: 23 },
                 { name: 'David', score: 100 },
                 { name: 'Emily', score: 83 },
             ];
 
-        let update = d3.select('div.chart').selectAll('div')
-            .data(scores, (x: any) => { console.log(x); return x ? x.name : null });
-
-        console.log(update);
-
-        let enter = update.enter()
-            .append('div')
+        let data1: Array<any> =
+            [
+                { name: 'Alice', score: 23 },
+                { name: 'Davidd', score: 100 }
+            ];
+            
+        let update0 = d3.select('div.chart').selectAll('div')
+            .data(scores, (x: any) => { console.log(x); return x ? x.name : null }).enter().append('div')
             .text((d: any) => {
                 return d.name;
             })
             .style('color', 'red');
 
-        //update.exit().remove();
+        update0 = d3.select('div.chart').selectAll('div')
+        .data(data1).append('div')
+            .text((d: any) => {
+                return d.name;
+            })
+            .style('color', 'blue');
+        // let update = d3.select('div.chart').selectAll('div')
+        //     .data(scores, (x: any) => { console.log(x); return x ? x.name : null });
 
-        update.merge(update.exit())
-            .style('height', '50px')
-            .append('span')
-            .text('asd');
-        update.exit()
-            .append('span')
-            .text('gggasdsa');
+        // console.log(update);
+
+        // let enter = update.enter()
+        //     .append('div')
+        //     .text((d: any) => {
+        //         return d.name;
+        //     })
+        //     .style('color', 'red');
+
+        // //update.exit().remove();
+
+        // update.merge(update.exit())
+        //     .style('height', '50px')
+        //     .append('span')
+        //     .text('asd');
+        // update.exit()
+        //     .append('span')
+        //     .text('gggasdsa');
     }
 
     testSVGCircles(): void {
