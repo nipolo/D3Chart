@@ -5,7 +5,8 @@ import { ScaleLinear, ScaleTime } from 'd3'
 
 @Component({
     selector: 'simple-render-data.component',
-    templateUrl: 'simple-render-data.component.html'
+    templateUrl: 'simple-render-data.component.html',
+    styleUrls: ['styles/simple-render-data.component.component.css']
 })
 export class SimpleRenderData implements AfterViewInit {
 
@@ -20,11 +21,9 @@ export class SimpleRenderData implements AfterViewInit {
     ngAfterViewInit(): void {
         //this.testSelectDomEl();
 
-        this.testVisualizeData();
-        this.testSVGCircles();
-        this.testPolygon();
+        this.testTransitions();
     }
-
+    //#region d3 functions
     testLinearScale(): void {
         this.linearScale = d3.scaleLinear()
             .domain([0, 100])
@@ -79,7 +78,7 @@ export class SimpleRenderData implements AfterViewInit {
                 { name: 'Alice', score: 23 },
                 { name: 'Davidd', score: 100 }
             ];
-            
+
         let update0 = d3.select('div.chart').selectAll('div')
             .data(scores, (x: any) => { console.log(x); return x ? x.name : null }).enter().append('div')
             .text((d: any) => {
@@ -88,7 +87,7 @@ export class SimpleRenderData implements AfterViewInit {
             .style('color', 'red');
 
         update0 = d3.select('div.chart').selectAll('div')
-        .data(data1).append('div')
+            .data(data1).append('div')
             .text((d: any) => {
                 return d.name;
             })
@@ -174,4 +173,78 @@ export class SimpleRenderData implements AfterViewInit {
             .attr("points", function (d: string) { return <string>d; })
             .attr("style", "fill:lime;stroke:purple;stroke-width:1");
     }
+
+    responsivefy(svg: d3.Selection<any, any, any, any>): void {
+        let container = d3.select(svg.node().parentNode);
+        let width = parseInt(svg.style('width'));
+        let height = parseInt(svg.style('height'));
+        let aspect = width / height;
+
+        let resize = () => {
+            let targetWidth = width;
+            svg.attr("width", targetWidth);
+            svg.attr("height", Math.round(targetWidth / aspect));
+        };
+
+        svg.attr("viewBox", `0 0 ${width*1.5} ${height*1.5}`)
+            .attr("preserveAspectRatio", "xMinYMid")
+            .call(resize);
+
+        d3.select(window).on("resize." + container.attr("id"), resize);
+    }
+
+    testPlot(): void {
+        let margin = { top: 10, right: 20, bottom: 30, left: 30 };
+        let width = 400 - margin.left - margin.right;
+        let height = 565 - margin.top - margin.bottom;
+
+        let svg = d3.select('svg')
+            .attr('width', width + margin.left + margin.right)
+            .attr('height', width + margin.top + margin.bottom)
+            .call(this.responsivefy)
+            .append('g')
+            .attr('transform', `translate (${margin.left}, ${margin.top})`);
+
+        d3.json('app/components/d3-examples/data/dataCountry.json', (data: [{ country: any, population: any, expectancy: any, cost: any, code: any }]) => {
+            let yScale = d3.scaleLinear()
+                .domain(d3.extent(data, d => d.expectancy))
+                .range([height, 0])
+                .nice();
+            let yAxis = d3.axisLeft(yScale);
+            svg.call(yAxis);
+
+            let xScale = d3.scaleLinear()
+                .domain(d3.extent(data, d => d.cost))
+                .range([0, width]);
+            let xAxis = d3.axisBottom(xScale).ticks(5);
+            svg
+                .append('g')
+                    .attr('transform',  `translate(0, ${height})`)
+                .call(xAxis);
+
+            let rScale = d3.scaleSqrt()
+                .domain([0, d3.max(data, d => d.population)])
+                .range([0, 40]);
+            svg.selectAll('circle')
+                .data(data)
+                .enter()
+                .append('circle')
+                .attr('cx', d => xScale(d.cost))
+                .attr('cy', d => xScale(d.expectancy))
+                .attr('r', d => rScale(d.population))
+                .style('fill', 'steelblue');
+        });
+
+
+
+    }
+
+    testTransitions() : void {
+        d3.select("#block")
+            .transition()
+            .duration(500)
+            .style('width', "400px")
+            .style('height', "600px")
+    }
+    //#endregion
 }
