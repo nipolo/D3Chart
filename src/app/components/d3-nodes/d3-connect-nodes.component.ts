@@ -69,7 +69,6 @@ export class D3ConnectNodes implements AfterViewInit {
         this.drawContainer();
     }
 
-
     drawContainer(): void {
         let svgWithCircles = this._svg.selectAll("circle")
             .data(this._nodes, (x: NodeModel) => { return x.label });
@@ -155,6 +154,7 @@ export class D3ConnectNodes implements AfterViewInit {
 
         lines.exit().remove();
     }
+
     getNodeMode(key: string): NodeModel {
         let res = R.find((x) => x.label == key, this._nodes);
         return res;
