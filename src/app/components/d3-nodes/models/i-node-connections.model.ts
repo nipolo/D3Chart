@@ -1,6 +1,4 @@
-import { INodeModel } from './i-node.model'
-
 export interface INodeConnection{
-    parentNode: INodeModel;
-    childNode: INodeModel;
+    parentNodeKey: string;
+    childNodeKey: string;
 }

@@ -2,20 +2,23 @@ import { INodeConnection } from './i-node-connections.model'
 import { INodeModel } from './i-node.model'
 
 export class NodeConnection implements INodeConnection {
-    constructor(private _parentNode: INodeModel, private _childNode: INodeModel) {
+    constructor(private _parentNodeKey: string, private _childNodeKey: string) {
 
     }
 
-    public get parentNode(): INodeModel {
-        return this._parentNode;
+    get key(): string {
+        return this._parentNodeKey + '_' + this._childNodeKey;
     }
-    public set parentNode(val: INodeModel) {
-        this._parentNode = val;
+    public get parentNodeKey(): string {
+        return this._parentNodeKey;
     }
-    public get childNode(): INodeModel {
-        return this._childNode;
+    public set parentNodeKey(val: string) {
+        this._parentNodeKey = val;
     }
-    public set childNode(val: INodeModel) {
-        this._childNode = val;
+    public get childNodeKey(): string {
+        return this._childNodeKey;
+    }
+    public set childNodeKey(val: string) {
+        this._childNodeKey = val;
     }
 } 

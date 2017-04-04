@@ -60,11 +60,20 @@ export class D3ConnectNodes implements AfterViewInit {
         this._nodes = data;
     }
 
+    shuffleCoordinates(){
+        for (let nodeModel of this._nodes){
+            nodeModel.center.x = Math.random() * this._width;
+            nodeModel.center.y = Math.random() * this._height;
+        }
+
+        this.drawContainer();
+    }
+
     drawContainer(): void {
-        // draw nodes
-        this._svg.selectAll("circle")
-            .data(this._nodes, (x: NodeModel) => { return x.label })
-            .enter().append("circle")
+        let svgWithCircles = this._svg.selectAll("circle")
+            .data(this._nodes, (x: NodeModel) => { return x.label });
+        // draw nodes (circles)
+        svgWithCircles.enter().merge(svgWithCircles).append("circle")
             .attr("transform", (d) => {
                 return `translate(${d.center.x}, ${d.center.y})`;
             })
@@ -72,17 +81,37 @@ export class D3ConnectNodes implements AfterViewInit {
             .style("fill", (d, i) => {
                 return this._colors(i.toString());
             })
-            .on("click", this.nodeOnClick);
+            .on("click", (x, y, z) => this.nodeOnClick(x, y, z));
 
+        // draw text labels
+        svgWithCircles.enter().append("text")
+            .attr("transform", (d) => {
+                return `translate(${d.center.x + d.size}, ${d.center.y})`;
+            })
+            .text((d) => d.label);
         // draw connections
-        // this._svg.selectAll("line")
-        //     .data(this._nodeConnections, (x: any) => { return x; })
-        //     .enter()
-        //     .append("line")
-        //     .attr("x1", (connection)=>connection.parentNode.center.x)
-        //     .attr("y1", (connection)=>connection.parentNode.center.y)
-        //     .attr("x2", (connection)=>connection.childNode.center.x)
-        //     .attr("y2", (connection)=>connection.childNode.center.y);
+        let lines = this._svg.selectAll("line")
+            .data(this._nodeConnections, (x: any) => {
+                // console.log(x);
+                return x.key;
+            });
+
+        lines.enter()
+            .append("line")
+            .attr("x1", (connection : NodeConnection) => {
+                return this.getNodeMode(connection.parentNodeKey).center.x;
+            })
+            .attr("y1", (connection) => this.getNodeMode(connection.parentNodeKey).center.y)
+            .attr("x2", (connection) => this.getNodeMode(connection.childNodeKey).center.x)
+            .attr("y2", (connection) => this.getNodeMode(connection.parentNodeKey).center.x)
+            .style("stroke-width", "2")
+            .style("stroke", "red");
+
+        lines.exit().remove();
+    }
+
+    getNodeMode(key: string) : NodeModel {
+        return R.find((x) => x.label == key, this._nodes)
     }
 
     nodeOnClick(d: NodeModel, i: any, el: any) {
@@ -108,17 +137,26 @@ export class D3ConnectNodes implements AfterViewInit {
     }
 
     addRemoveNode(node: NodeModel): void {
+        if (this._selectedNode == node) {
+            return;
+        }
+
         if (this._selectedNode == null) {
             this._selectedNode = node;
         }
         else {
-            if (R.contains(new NodeConnection(this._selectedNode, node), this._nodeConnections)
-                || R.contains(new NodeConnection(node, this._selectedNode), this._nodeConnections)) {
-                this._nodeConnections = [...R.without([new NodeConnection(this._selectedNode, node)], this._nodeConnections)];
+            if (R.contains(new NodeConnection(this._selectedNode.label, node.label), this._nodeConnections)
+                || R.contains(new NodeConnection(node.label, this._selectedNode.label), this._nodeConnections)) {
+                this._nodeConnections = [...R.without([new NodeConnection(this._selectedNode.label, node.label), new NodeConnection(node.label, this._selectedNode.label)], this._nodeConnections)];
             }
             else {
-                this._nodeConnections.push(new NodeConnection(this._selectedNode, node));
+                this._nodeConnections.push(new NodeConnection(this._selectedNode.label, node.label));
             }
+            this._selectedNode = null;
+        }
+
+        for (let connection of this._nodeConnections) {
+            console.log("parent node: " + this.getNodeMode(connection.parentNodeKey).label + ", child node: " + this.getNodeMode(connection.parentNodeKey).label);
         }
     }
 
