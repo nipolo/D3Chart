@@ -60,8 +60,8 @@ export class D3ConnectNodes implements AfterViewInit {
         this._nodes = data;
     }
 
-    shuffleCoordinates(){
-        for (let nodeModel of this._nodes){
+    shuffleCoordinates() {
+        for (let nodeModel of this._nodes) {
             nodeModel.center.x = Math.random() * this._width;
             nodeModel.center.y = Math.random() * this._height;
         }
@@ -69,11 +69,60 @@ export class D3ConnectNodes implements AfterViewInit {
         this.drawContainer();
     }
 
+
     drawContainer(): void {
         let svgWithCircles = this._svg.selectAll("circle")
             .data(this._nodes, (x: NodeModel) => { return x.label });
+
+        let lines = this._svg.selectAll("line")
+            .data(this._nodeConnections, (x: any) => {
+                // console.log(x);
+                return x.key;
+            });
+        this.updateSVG(svgWithCircles, lines);
+
+        this.enterSVG(svgWithCircles, lines);
+    }
+
+    updateSVG(svgWithCircles: d3.Selection<any, any, any, any>,
+        lines: d3.Selection<any, any, any, any>) {
+        // update circles
+        svgWithCircles
+            .attr("transform", (d) => {
+                return `translate(${d.center.x}, ${d.center.y})`;
+            })
+            .attr("r", (d) => { return d.size; })
+            .style("fill", (d, i) => {
+                return this._colors(i.toString());
+            })
+            .on("click", (x, y, z) => this.nodeOnClick(x, y, z));
+        // update text
+        this._svg.selectAll("text")
+            .data(this._nodes, (x: NodeModel) => { return x.label })
+            .attr("transform", (d) => {
+                return `translate(${d.center.x + d.size}, ${d.center.y})`;
+            })
+
+        // draw connections
+        lines
+            .attr("x1", (connection: NodeConnection) => {
+                return this.getNodeMode(connection.parentNodeKey).center.x;
+            })
+            .attr("y1", (connection) => {
+                return this.getNodeMode(connection.parentNodeKey).center.y;
+            })
+            .attr("x2", (connection) => this.getNodeMode(connection.childNodeKey).center.x)
+            .attr("y2", (connection) => this.getNodeMode(connection.childNodeKey).center.y)
+            .style("stroke-width", "2")
+            .style("stroke", "red");
+
+        lines.exit().remove();
+    }
+
+    enterSVG(svgWithCircles: d3.Selection<any, any, any, any>,
+        lines: d3.Selection<any, any, any, any>) {
         // draw nodes (circles)
-        svgWithCircles.enter().merge(svgWithCircles).append("circle")
+        svgWithCircles.enter().append("circle")
             .attr("transform", (d) => {
                 return `translate(${d.center.x}, ${d.center.y})`;
             })
@@ -89,29 +138,26 @@ export class D3ConnectNodes implements AfterViewInit {
                 return `translate(${d.center.x + d.size}, ${d.center.y})`;
             })
             .text((d) => d.label);
-        // draw connections
-        let lines = this._svg.selectAll("line")
-            .data(this._nodeConnections, (x: any) => {
-                // console.log(x);
-                return x.key;
-            });
 
+        // draw connections
         lines.enter()
             .append("line")
-            .attr("x1", (connection : NodeConnection) => {
+            .attr("x1", (connection: NodeConnection) => {
                 return this.getNodeMode(connection.parentNodeKey).center.x;
             })
-            .attr("y1", (connection) => this.getNodeMode(connection.parentNodeKey).center.y)
+            .attr("y1", (connection) => {
+                return this.getNodeMode(connection.parentNodeKey).center.y;
+            })
             .attr("x2", (connection) => this.getNodeMode(connection.childNodeKey).center.x)
-            .attr("y2", (connection) => this.getNodeMode(connection.parentNodeKey).center.x)
+            .attr("y2", (connection) => this.getNodeMode(connection.childNodeKey).center.y)
             .style("stroke-width", "2")
             .style("stroke", "red");
 
         lines.exit().remove();
     }
-
-    getNodeMode(key: string) : NodeModel {
-        return R.find((x) => x.label == key, this._nodes)
+    getNodeMode(key: string): NodeModel {
+        let res = R.find((x) => x.label == key, this._nodes);
+        return res;
     }
 
     nodeOnClick(d: NodeModel, i: any, el: any) {
@@ -156,7 +202,7 @@ export class D3ConnectNodes implements AfterViewInit {
         }
 
         for (let connection of this._nodeConnections) {
-            console.log("parent node: " + this.getNodeMode(connection.parentNodeKey).label + ", child node: " + this.getNodeMode(connection.parentNodeKey).label);
+            console.log("parent node: " + this.getNodeMode(connection.parentNodeKey).label + ", child node: " + this.getNodeMode(connection.childNodeKey).label);
         }
     }
 
